@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Social Ideas UI</title>
+  <style>
+    body { font-family: Arial; max-width: 900px; margin: 20px auto; }
+    input, textarea, button { width: 100%; padding: 10px; margin: 8px 0; }
+    .idea { border: 1px solid #ddd; padding: 12px; margin: 10px 0; }
+    .posts { white-space: pre-wrap; background: #f7f7f7; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h2>Generate Social Ideas</h2>
+
+  <label>Category</label>
+  <input id="category" placeholder="AI / Education / Finance" value="AI" />
+
+  <label>Websites (one per line, max 10)</label>
+  <textarea id="websites" rows="8"
+    placeholder="https://site1.com&#10;https://site2.com"></textarea>
+
+  <button onclick="generateIdeas()">Generate Ideas</button>
+
+  <div id="results"></div>
+
+<script>
+  // PUT YOUR n8n production webhook URLs here
+  const IDEAS_URL = "https://velven.app.n8n.cloud/webhook/ideas/generate";
+  const POSTS_URL = "https://velven.app.n8n.cloud/webhook/ideas/generate-text-content";
+
+  async function generateIdeas() {
+    const category = document.getElementById("category").value.trim();
+    const websites = document.getElementById("websites").value
+      .split("\n").map(x => x.trim()).filter(Boolean);
+
+    const resDiv = document.getElementById("results");
+    resDiv.innerHTML = "Loading ideas...";
+
+    const resp = await fetch(IDEAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category, websites })
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) {
+      resDiv.innerHTML = "Error: " + (data.message || JSON.stringify(data));
+      return;
+    }
+
+    resDiv.innerHTML = `<h3>Top Ideas</h3>` + data.ideas.map(i => `
+      <div class="idea">
+        <b>${i.idea_id || ""} — ${i.idea_title}</b>
+        <div>${i.idea_summary}</div>
+        <button onclick="generatePosts('${i.idea_id}')">Generate Posts</button>
+        <div id="posts-${i.idea_id}" class="posts"></div>
+      </div>
+    `).join("");
+  }
+
+  async function generatePosts(idea_id) {
+    const div = document.getElementById("posts-" + idea_id);
+    div.textContent = "Generating posts...";
+
+    const resp = await fetch(POSTS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idea_id })
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) {
+      div.textContent = "Error: " + (data.message || JSON.stringify(data));
+      return;
+    }
+
+    div.textContent = JSON.stringify(data.posts, null, 2);
+  }
+</script>
+</body>
+</html>
