@@ -126,60 +126,65 @@ async function generateIdeas(){
 
 
 // GENERATE POSTS
-async function generatePosts(idea_id){
 
+async function generatePosts(idea_id) {
   const div = document.getElementById("posts-" + idea_id);
-
   div.innerHTML = "Generating posts...";
 
-  try{
-
-    const resp = await fetch(POSTS_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({
-        idea_id: idea_id
-      })
+  try {
+    const resp = await fetch(POSTS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idea_id })
     });
 
     const data = await resp.json();
 
-    if(!resp.ok){
+    if (!resp.ok) {
       div.innerHTML = "Error: " + (data.message || JSON.stringify(data));
       return;
     }
 
-    const content = data.content;
+    if (!data.content) {
+      div.innerHTML = "Error: No content returned from workflow";
+      return;
+    }
 
     div.innerHTML = `
-
       <div class="platform">
         <h4>LinkedIn</h4>
-        <div>${content.linkedin.text}</div>
-        <div style="color:#777;margin-top:4px">
-          ${content.linkedin.hashtags.join(" ")}
+        <div>${escapeHtml(data.content.linkedin?.text || "")}</div>
+        <div style="color:#777;margin-top:6px;">
+          ${(data.content.linkedin?.hashtags || []).join(" ")}
         </div>
       </div>
 
       <div class="platform">
         <h4>X / Twitter</h4>
-        <div>${content.x.text}</div>
+        <div>${escapeHtml(data.content.x?.text || "")}</div>
       </div>
 
       <div class="platform">
         <h4>Facebook</h4>
-        <div>${content.facebook.text}</div>
+        <div>${escapeHtml(data.content.facebook?.text || "")}</div>
       </div>
-
     `;
-
-  }catch(e){
+  } catch (e) {
     div.innerHTML = "Error generating posts.";
   }
+}
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 </script>
 
 </body>
 </html>
+
