@@ -1234,7 +1234,20 @@
           return;
         }
 
-        allPostsData = Array.isArray(data.posts) ? data.posts : [];
+        allPostsData = (Array.isArray(data.events) ? data.events : []).map(e => ({
+        idea_id: e.idea_id,
+        idea_title: e.title,
+        idea_summary: "",
+        is_scheduled: e.status === "Scheduled",
+        scheduled_date: e.date,
+        scheduled_time: e.time,
+        scheduled_time_label: e.timeLabel,
+        scheduled_datetime: e.datetime,
+        status: e.status,
+        platforms: e.platforms || [],
+        planner_note: e.note || "",
+        has_content: true
+      }));
 
         if (!skipRender) {
           renderAllPostsCards();
