@@ -525,6 +525,7 @@
       border-radius: 10px !important;
       padding: 2px 4px !important;
       box-shadow: 0 8px 18px rgba(35, 0, 8, 0.2);
+      cursor: move;
     }
 
     .fc-event-title {
@@ -763,7 +764,6 @@
         <button class="tab-btn" onclick="openPlanner(this)">Planner</button>
       </div>
 
-      <!-- GENERATE IDEAS VIEW -->
       <div id="ideasView" class="view active">
         <section class="panel">
           <div class="panel-header">
@@ -793,7 +793,6 @@
         </section>
       </div>
 
-      <!-- ALL POSTS VIEW -->
       <div id="allPostsView" class="view">
         <section class="panel">
           <div class="panel-header">
@@ -827,13 +826,12 @@
         </section>
       </div>
 
-      <!-- PLANNER VIEW -->
       <div id="plannerView" class="view">
         <section class="panel">
           <div class="panel-header">
             <div>
               <h2>Content Planner</h2>
-              <p class="muted">Only post titles are shown in the calendar. Click any title to see full scheduling details.</p>
+              <p class="muted">Drag posts directly on the calendar to reschedule them.</p>
             </div>
           </div>
 
@@ -845,7 +843,6 @@
     </main>
   </div>
 
-  <!-- PLANNER EVENT MODAL -->
   <div id="eventModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeEventModal()">&times;</span>
@@ -853,7 +850,6 @@
     </div>
   </div>
 
-  <!-- ALL POSTS MODAL -->
   <div id="postModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closePostModal()">&times;</span>
@@ -899,6 +895,19 @@
       loadAllPosts();
     }
 
+    function formatDateForInput(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const d = String(dateObj.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatTime24(dateObj) {
+      const h = String(dateObj.getHours()).padStart(2, "0");
+      const m = String(dateObj.getMinutes()).padStart(2, "0");
+      return `${h}:${m}`;
+    }
+
     function initCalendar() {
       if (calendar) return;
 
@@ -908,7 +917,7 @@
         initialView: "dayGridMonth",
         height: "auto",
         nowIndicator: true,
-        editable: false,
+        editable: true,
         selectable: false,
         dayMaxEvents: true,
         headerToolbar: {
@@ -921,6 +930,7 @@
           minute: "2-digit",
           meridiem: "short"
         },
+
         eventClick: function(info) {
           const e = info.event;
           const ext = e.extendedProps || {};
@@ -954,6 +964,48 @@
 
           document.getElementById("eventModal").style.display = "block";
         },
+
+        eventDrop: async function(info) {
+          const event = info.event;
+          const ext = event.extendedProps || {};
+          const newStart = event.start;
+
+          if (!ext.idea_id || !newStart) {
+            info.revert();
+            alert("Unable to move this post.");
+            return;
+          }
+
+          let newDate = formatDateForInput(newStart);
+          let newTime = formatTime24(newStart);
+
+          if (calendar.view.type === "dayGridMonth") {
+            newTime = ext.time || "08:00";
+          }
+
+          try {
+            const result = await schedulePost(ext.idea_id, {
+              directValues: true,
+              date: newDate,
+              time: newTime,
+              note: ext.note || "",
+              platforms: Array.isArray(ext.platforms) && ext.platforms.length
+                ? ext.platforms
+                : ["linkedin", "x", "facebook"],
+              statusDivId: null
+            });
+
+            if (!result.success) {
+              info.revert();
+              alert("Failed to update schedule.");
+              return;
+            }
+          } catch (err) {
+            info.revert();
+            alert("Failed to update schedule.");
+          }
+        },
+
         events: []
       });
 
@@ -1109,29 +1161,62 @@
       const noteInputId = options.noteInputId || `planner-note-${safeId}`;
       const statusDivId = options.statusDivId || `schedule-status-${safeId}`;
 
-      const date = document.getElementById(dateInputId)?.value;
-      const time = document.getElementById(timeInputId)?.value;
-      const note = document.getElementById(noteInputId)?.value || "";
-      const statusDiv = document.getElementById(statusDivId);
+      const useDirectValues = Boolean(options.directValues);
 
-      const platforms = [];
-      if (document.getElementById(`linkedin-${safeId}`)?.checked || document.getElementById(options.linkedinCheckboxId || `modal-linkedin-${safeId}`)?.checked) platforms.push("linkedin");
-      if (document.getElementById(`x-${safeId}`)?.checked || document.getElementById(options.xCheckboxId || `modal-x-${safeId}`)?.checked) platforms.push("x");
-      if (document.getElementById(`facebook-${safeId}`)?.checked || document.getElementById(options.facebookCheckboxId || `modal-facebook-${safeId}`)?.checked) platforms.push("facebook");
+      const date = useDirectValues
+        ? String(options.date || "").trim()
+        : (document.getElementById(dateInputId)?.value || "").trim();
+
+      const time = useDirectValues
+        ? String(options.time || "").trim()
+        : (document.getElementById(timeInputId)?.value || "").trim();
+
+      const note = useDirectValues
+        ? (options.note || "")
+        : (document.getElementById(noteInputId)?.value || "");
+
+      const statusDiv = statusDivId ? document.getElementById(statusDivId) : null;
+
+      let platforms = [];
+
+      if (useDirectValues) {
+        platforms = Array.isArray(options.platforms) ? options.platforms : [];
+      } else {
+        if (
+          document.getElementById(`linkedin-${safeId}`)?.checked ||
+          document.getElementById(options.linkedinCheckboxId || `modal-linkedin-${safeId}`)?.checked
+        ) {
+          platforms.push("linkedin");
+        }
+
+        if (
+          document.getElementById(`x-${safeId}`)?.checked ||
+          document.getElementById(options.xCheckboxId || `modal-x-${safeId}`)?.checked
+        ) {
+          platforms.push("x");
+        }
+
+        if (
+          document.getElementById(`facebook-${safeId}`)?.checked ||
+          document.getElementById(options.facebookCheckboxId || `modal-facebook-${safeId}`)?.checked
+        ) {
+          platforms.push("facebook");
+        }
+      }
 
       if (!date) {
         if (statusDiv) statusDiv.innerHTML = "Please select a date.";
-        return;
+        return { success: false, message: "Missing date" };
       }
 
       if (!time) {
         if (statusDiv) statusDiv.innerHTML = "Please select a time.";
-        return;
+        return { success: false, message: "Missing time" };
       }
 
-      if (platforms.length === 0) {
+      if (!platforms.length) {
         if (statusDiv) statusDiv.innerHTML = "Please select at least one platform.";
-        return;
+        return { success: false, message: "Missing platforms" };
       }
 
       const scheduled_datetime = `${date}T${time}:00`;
@@ -1156,8 +1241,13 @@
         const data = await resp.json();
 
         if (!resp.ok) {
-          if (statusDiv) statusDiv.innerHTML = "Error: " + escapeHtml(data.message || JSON.stringify(data));
-          return;
+          if (statusDiv) {
+            statusDiv.innerHTML = "Error: " + escapeHtml(data.message || JSON.stringify(data));
+          }
+          return {
+            success: false,
+            message: data.message || "Failed to save schedule"
+          };
         }
 
         if (statusDiv) statusDiv.innerHTML = "Schedule saved successfully.";
@@ -1165,8 +1255,10 @@
         await Promise.all([loadPlanner(), loadAllPosts(true)]);
         updatePostModalAfterSchedule(idea_id, date, time, note, platforms);
 
+        return { success: true, data };
       } catch (e) {
         if (statusDiv) statusDiv.innerHTML = "Error saving schedule.";
+        return { success: false, message: "Network or server error" };
       }
     }
 
