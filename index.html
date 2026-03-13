@@ -1,191 +1,1190 @@
 <!doctype html>
 <html>
 <head>
-<meta charset="utf-8" />
-<title>Social Ideas Generator</title>
+  <meta charset="utf-8" />
+  <title>Social Ideas + All Posts + Planner</title>
 
-<style>
-body{
-  font-family: Arial;
-  max-width: 900px;
-  margin: 30px auto;
-}
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
 
-input, textarea, button{
-  width:100%;
-  padding:10px;
-  margin:8px 0;
-}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1280px;
+      margin: 30px auto;
+      padding: 0 16px;
+      background: #fff;
+      color: #222;
+    }
 
-.idea{
-  border:1px solid #ddd;
-  padding:15px;
-  margin:15px 0;
-  border-radius:6px;
-}
+    h2, h3, h4 {
+      margin-top: 0;
+    }
 
-.posts{
-  margin-top:10px;
-  padding:12px;
-  background:#f7f7f7;
-  border-radius:4px;
-}
+    input, textarea, button, select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
 
-.platform{
-  margin-top:12px;
-}
+    button {
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f5f5f5;
+    }
 
-.platform h4{
-  margin-bottom:6px;
-}
-</style>
+    button:hover {
+      background: #ebebeb;
+    }
 
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      width: auto;
+      padding: 10px 18px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
+      border-radius: 6px;
+    }
+
+    .tab-btn.active {
+      background: #222;
+      color: white;
+      border-color: #222;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .idea {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .posts {
+      margin-top: 10px;
+      padding: 12px;
+      background: #f7f7f7;
+      border-radius: 6px;
+    }
+
+    .platform {
+      margin-top: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .platform:last-child {
+      border-bottom: none;
+    }
+
+    .platform h4 {
+      margin-bottom: 6px;
+    }
+
+    .schedule-box {
+      margin-top: 16px;
+      padding: 14px;
+      background: #eef5ff;
+      border: 1px solid #cfe0ff;
+      border-radius: 8px;
+    }
+
+    .schedule-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .checkbox-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+
+    .checkbox-row label {
+      width: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .checkbox-row input {
+      width: auto;
+      margin: 0;
+    }
+
+    .inline-btn {
+      width: auto;
+      display: inline-block;
+      margin-top: 10px;
+      padding: 8px 14px;
+    }
+
+    .muted {
+      color: #777;
+    }
+
+    .small {
+      color: #666;
+      font-size: 14px;
+    }
+
+    #calendar {
+      margin-top: 20px;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 16px;
+    }
+
+    .fc .fc-toolbar-title {
+      font-size: 20px;
+    }
+
+    .fc-event-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background: #fff;
+      width: 100%;
+      max-width: 720px;
+      margin: 4% auto;
+      padding: 22px;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .close {
+      position: absolute;
+      right: 14px;
+      top: 8px;
+      font-size: 28px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .close:hover {
+      color: #111;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 10px 14px;
+      margin-top: 16px;
+      align-items: start;
+    }
+
+    .details-grid .label {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .details-grid .value {
+      color: #444;
+      word-break: break-word;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .status-scheduled {
+      background: #dbeafe;
+      color: #1e3a8a;
+    }
+
+    .status-not-scheduled {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-draft {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    .status-posted {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-cancelled {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .section-box {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+
+    .posts-toolbar {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 14px;
+      margin-bottom: 18px;
+      align-items: end;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .post-card {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 16px;
+      background: #fff;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .post-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+    }
+
+    .post-card-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+
+    .post-card-summary {
+      color: #555;
+      font-size: 14px;
+      line-height: 1.45;
+      margin-bottom: 14px;
+      min-height: 58px;
+    }
+
+    .card-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mini-schedule {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      font-size: 13px;
+      color: #444;
+    }
+
+    .loading-box {
+      padding: 18px;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      background: #fafafa;
+      color: #666;
+    }
+
+    .content-block {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .content-block h4 {
+      margin-bottom: 8px;
+    }
+
+    .sources-row {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 800px) {
+      .schedule-grid,
+      .two-col,
+      .posts-toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        margin: 12% auto;
+      }
+    }
+  </style>
 </head>
-
 <body>
 
-<h2>Generate Social Media Ideas</h2>
+  <h2>Social Content Tool</h2>
 
-<label>Category</label>
-<input id="category" placeholder="AI / Education / Finance" value="AI"/>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showView('ideasView', this)">Generate Ideas</button>
+    <button class="tab-btn" onclick="openAllPosts(this)">All Posts</button>
+    <button class="tab-btn" onclick="openPlanner(this)">Planner</button>
+  </div>
 
-<label>Websites (one per line, max 10)</label>
-<textarea id="websites" rows="8"
-placeholder="https://site1.com
-https://site2.com"></textarea>
+  <!-- GENERATE IDEAS VIEW -->
+  <div id="ideasView" class="view active">
+    <label>Category</label>
+    <input id="category" placeholder="AI / Education / Finance" value="AI"/>
 
-<button onclick="generateIdeas()">Generate Ideas</button>
+    <label>Websites (one per line, max 10)</label>
+    <textarea id="websites" rows="8" placeholder="https://site1.com&#10;https://site2.com"></textarea>
 
-<div id="results"></div>
+    <button onclick="generateIdeas()">Generate Ideas</button>
 
-<script>
+    <div id="results"></div>
+  </div>
 
-// Replace with your n8n production webhook URLs
-const IDEAS_URL = "https://velven.app.n8n.cloud/webhook/ideas/generate";
-const POSTS_URL = "https://velven.app.n8n.cloud/webhook/ideas/generate-text-content";
+  <!-- ALL POSTS VIEW -->
+  <div id="allPostsView" class="view">
+    <h3>All Posts</h3>
+    <p class="muted">See all ideas, content status, and scheduling in one place.</p>
 
-
-// GENERATE IDEAS
-async function generateIdeas(){
-
-  const category = document.getElementById("category").value.trim();
-
-  const websites = document.getElementById("websites")
-  .value
-  .split("\n")
-  .map(x => x.trim())
-  .filter(Boolean);
-
-  const resDiv = document.getElementById("results");
-  resDiv.innerHTML = "Loading ideas...";
-
-  try{
-
-    const resp = await fetch(IDEAS_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({
-        category,
-        websites
-      })
-    });
-
-    const data = await resp.json();
-
-    if(!resp.ok){
-      resDiv.innerHTML = "Error: " + (data.message || JSON.stringify(data));
-      return;
-    }
-
-    resDiv.innerHTML =
-      `<h3>Top Ideas</h3>` +
-      data.ideas.map(i => `
-
-      <div class="idea">
-
-        <b>${i.idea_title}</b>
-
-        <div style="margin-top:6px">${i.idea_summary}</div>
-
-        <button onclick="generatePosts('${i.idea_id}')">
-          Generate Posts
-        </button>
-
-        <div id="posts-${i.idea_id}" class="posts"></div>
-
+    <div class="posts-toolbar">
+      <div>
+        <label>Search</label>
+        <input id="allPostsSearch" placeholder="Search by title or summary" oninput="renderAllPostsCards()" />
       </div>
+      <div>
+        <label>Status</label>
+        <select id="allPostsFilter" onchange="renderAllPostsCards()">
+          <option value="all">All</option>
+          <option value="scheduled">Scheduled</option>
+          <option value="not_scheduled">Not Scheduled</option>
+          <option value="posted">Posted</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="draft">Draft</option>
+        </select>
+      </div>
+    </div>
 
-    `).join("");
+    <button class="inline-btn" onclick="loadAllPosts()">Refresh All Posts</button>
 
-  }catch(e){
-    resDiv.innerHTML = "Error calling workflow.";
-  }
+    <div id="allPostsResults" style="margin-top:18px;"></div>
+  </div>
 
-}
+  <!-- PLANNER VIEW -->
+  <div id="plannerView" class="view">
+    <h3>Content Planner</h3>
+    <p class="muted">Only post titles are shown in the calendar. Click any title to see full scheduling details.</p>
 
+    <button class="inline-btn" onclick="loadPlanner()">Refresh Calendar</button>
 
+    <div id="calendar"></div>
+  </div>
 
-// GENERATE POSTS
+  <!-- PLANNER EVENT MODAL -->
+  <div id="eventModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeEventModal()">&times;</span>
+      <div id="eventModalBody"></div>
+    </div>
+  </div>
 
-async function generatePosts(idea_id) {
-  const div = document.getElementById("posts-" + idea_id);
-  div.innerHTML = "Generating posts...";
+  <!-- ALL POSTS MODAL -->
+  <div id="postModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closePostModal()">&times;</span>
+      <div id="postModalBody"></div>
+    </div>
+  </div>
 
-  try {
-    const resp = await fetch(POSTS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ idea_id })
-    });
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
-    const data = await resp.json();
+  <script>
+    const IDEAS_URL = "https://velven.app.n8n.cloud/webhook/ideas/generate";
+    const POSTS_URL = "https://velven.app.n8n.cloud/webhook/ideas/generate-text-content";
+    const SCHEDULE_URL = "https://velven.app.n8n.cloud/webhook/ideas/schedule-post";
+    const PLANNER_URL = "https://velven.app.n8n.cloud/webhook/ideas/get-scheduled-posts";
+    const ALL_POSTS_URL = "https://velven.app.n8n.cloud/webhook/ideas/get-all-posts";
 
-    if (!resp.ok) {
-      div.innerHTML = "Error: " + (data.message || JSON.stringify(data));
-      return;
+    const TIME_SLOTS = [
+      { value: "08:00", label: "8:00 AM" },
+      { value: "12:00", label: "12:00 PM" },
+      { value: "18:00", label: "6:00 PM" },
+      { value: "22:00", label: "10:00 PM" }
+    ];
+
+    let calendar;
+    let allPostsData = [];
+
+    function showView(viewId, btn) {
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+
+      document.getElementById(viewId).classList.add("active");
+      btn.classList.add("active");
     }
 
-    if (!data.content) {
-      div.innerHTML = "Error: No content returned from workflow";
-      return;
+    function openPlanner(btn) {
+      showView("plannerView", btn);
+      initCalendar();
+      loadPlanner();
     }
 
-    div.innerHTML = `
-      <div class="platform">
-        <h4>LinkedIn</h4>
-        <div>${escapeHtml(data.content.linkedin?.text || "")}</div>
-        <div style="color:#777;margin-top:6px;">
-          ${(data.content.linkedin?.hashtags || []).join(" ")}
+    function openAllPosts(btn) {
+      showView("allPostsView", btn);
+      loadAllPosts();
+    }
+
+    function initCalendar() {
+      if (calendar) return;
+
+      const calendarEl = document.getElementById("calendar");
+
+      calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        height: "auto",
+        nowIndicator: true,
+        editable: false,
+        selectable: false,
+        dayMaxEvents: true,
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek"
+        },
+        eventTimeFormat: {
+          hour: "numeric",
+          minute: "2-digit",
+          meridiem: "short"
+        },
+        eventClick: function(info) {
+          const e = info.event;
+          const ext = e.extendedProps || {};
+
+          document.getElementById("eventModalBody").innerHTML = `
+            <h3>${escapeHtml(ext.raw_title || e.title)}</h3>
+
+            <div class="details-grid">
+              <div class="label">Date</div>
+              <div class="value">${escapeHtml(ext.date || "")}</div>
+
+              <div class="label">Time</div>
+              <div class="value">${escapeHtml(ext.timeLabel || formatTime(ext.time || ""))}</div>
+
+              <div class="label">Datetime</div>
+              <div class="value">${escapeHtml(ext.datetime || "")}</div>
+
+              <div class="label">Platforms</div>
+              <div class="value">${escapeHtml((ext.platforms || []).join(", "))}</div>
+
+              <div class="label">Status</div>
+              <div class="value">${renderStatusPill(ext.status || "Draft")}</div>
+
+              <div class="label">Note</div>
+              <div class="value">${escapeHtml(ext.note || "-")}</div>
+
+              <div class="label">Idea ID</div>
+              <div class="value">${escapeHtml(ext.idea_id || "-")}</div>
+            </div>
+          `;
+
+          document.getElementById("eventModal").style.display = "block";
+        },
+        events: []
+      });
+
+      calendar.render();
+    }
+
+    async function generateIdeas() {
+      const category = document.getElementById("category").value.trim();
+
+      const websites = document.getElementById("websites")
+        .value
+        .split("\n")
+        .map(x => x.trim())
+        .filter(Boolean);
+
+      const resDiv = document.getElementById("results");
+      resDiv.innerHTML = "Loading ideas...";
+
+      try {
+        const resp = await fetch(IDEAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ category, websites })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          resDiv.innerHTML = "Error: " + escapeHtml(data.message || JSON.stringify(data));
+          return;
+        }
+
+        resDiv.innerHTML =
+          `<h3>Top Ideas</h3>` +
+          (data.ideas || []).map(i => `
+            <div class="idea">
+              <b>${escapeHtml(i.idea_title)}</b>
+
+              <div style="margin-top:6px">${escapeHtml(i.idea_summary)}</div>
+
+              <div class="small" style="margin-top:6px;">
+                <b>Why today:</b> ${escapeHtml(i.why_today || "")}
+              </div>
+
+              <button onclick="generatePosts('${escapeJsString(i.idea_id)}')">Generate Posts</button>
+
+              <div id="posts-${escapeId(i.idea_id)}" class="posts"></div>
+            </div>
+          `).join("");
+
+      } catch (e) {
+        resDiv.innerHTML = "Error calling workflow.";
+      }
+    }
+
+    async function generatePosts(idea_id) {
+      const safeId = escapeId(idea_id);
+      const div = document.getElementById("posts-" + safeId);
+      div.innerHTML = "Generating posts...";
+
+      try {
+        const resp = await fetch(POSTS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idea_id })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          div.innerHTML = "Error: " + escapeHtml(data.message || JSON.stringify(data));
+          return;
+        }
+
+        if (!data.content) {
+          div.innerHTML = "Error: No content returned from workflow";
+          return;
+        }
+
+        div.innerHTML = renderGeneratedContentSection(data, idea_id, true);
+      } catch (e) {
+        div.innerHTML = "Error generating posts.";
+      }
+    }
+
+    function renderGeneratedContentSection(data, idea_id, includeScheduleBox) {
+      const safeId = escapeId(idea_id);
+
+      return `
+        <div class="platform">
+          <h4>LinkedIn</h4>
+          <div>${escapeHtml(data.content.linkedin?.text || "")}</div>
+          <div style="color:#777;margin-top:6px;">
+            ${(data.content.linkedin?.hashtags || []).map(escapeHtml).join(" ")}
+          </div>
         </div>
-      </div>
 
-      <div class="platform">
-        <h4>X / Twitter</h4>
-        <div>${escapeHtml(data.content.x?.text || "")}</div>
-      </div>
+        <div class="platform">
+          <h4>X / Twitter</h4>
+          <div>${escapeHtml(data.content.x?.text || "")}</div>
+        </div>
 
-      <div class="platform">
-        <h4>Facebook</h4>
-        <div>${escapeHtml(data.content.facebook?.text || "")}</div>
-      </div>
-    `;
-  } catch (e) {
-    div.innerHTML = "Error generating posts.";
-  }
-}
+        <div class="platform">
+          <h4>Facebook</h4>
+          <div>${escapeHtml(data.content.facebook?.text || "")}</div>
+        </div>
 
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+        ${includeScheduleBox ? `
+          <div class="schedule-box">
+            <h4>Schedule This Post</h4>
 
-</script>
+            <div class="schedule-grid">
+              <div>
+                <label>Date</label>
+                <input type="date" id="schedule-date-${safeId}" />
+              </div>
 
+              <div>
+                <label>Time</label>
+                <select id="schedule-time-${safeId}">
+                  ${TIME_SLOTS.map(t => `<option value="${t.value}">${t.label}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+
+            <label>Platforms</label>
+            <div class="checkbox-row">
+              <label><input type="checkbox" id="linkedin-${safeId}" checked /> LinkedIn</label>
+              <label><input type="checkbox" id="x-${safeId}" checked /> X</label>
+              <label><input type="checkbox" id="facebook-${safeId}" checked /> Facebook</label>
+            </div>
+
+            <label>Planner Note</label>
+            <input id="planner-note-${safeId}" placeholder="Optional note" />
+
+            <button onclick="schedulePost('${escapeJsString(idea_id)}')">Save Schedule</button>
+
+            <div id="schedule-status-${safeId}" class="small" style="margin-top:8px;"></div>
+          </div>
+        ` : ``}
+      `;
+    }
+
+    async function schedulePost(idea_id, options = {}) {
+      const safeId = escapeId(idea_id);
+
+      const dateInputId = options.dateInputId || `schedule-date-${safeId}`;
+      const timeInputId = options.timeInputId || `schedule-time-${safeId}`;
+      const noteInputId = options.noteInputId || `planner-note-${safeId}`;
+      const statusDivId = options.statusDivId || `schedule-status-${safeId}`;
+
+      const date = document.getElementById(dateInputId)?.value;
+      const time = document.getElementById(timeInputId)?.value;
+      const note = document.getElementById(noteInputId)?.value || "";
+      const statusDiv = document.getElementById(statusDivId);
+
+      const platforms = [];
+      if (document.getElementById(`linkedin-${safeId}`)?.checked || document.getElementById(options.linkedinCheckboxId || `modal-linkedin-${safeId}`)?.checked) platforms.push("linkedin");
+      if (document.getElementById(`x-${safeId}`)?.checked || document.getElementById(options.xCheckboxId || `modal-x-${safeId}`)?.checked) platforms.push("x");
+      if (document.getElementById(`facebook-${safeId}`)?.checked || document.getElementById(options.facebookCheckboxId || `modal-facebook-${safeId}`)?.checked) platforms.push("facebook");
+
+      if (!date) {
+        if (statusDiv) statusDiv.innerHTML = "Please select a date.";
+        return;
+      }
+
+      if (!time) {
+        if (statusDiv) statusDiv.innerHTML = "Please select a time.";
+        return;
+      }
+
+      if (platforms.length === 0) {
+        if (statusDiv) statusDiv.innerHTML = "Please select at least one platform.";
+        return;
+      }
+
+      const scheduled_datetime = `${date}T${time}:00`;
+
+      if (statusDiv) statusDiv.innerHTML = "Saving schedule...";
+
+      try {
+        const resp = await fetch(SCHEDULE_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            idea_id,
+            scheduled_date: date,
+            scheduled_time: time,
+            scheduled_datetime,
+            platforms_selected: platforms,
+            status: "Scheduled",
+            planner_note: note
+          })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          if (statusDiv) statusDiv.innerHTML = "Error: " + escapeHtml(data.message || JSON.stringify(data));
+          return;
+        }
+
+        if (statusDiv) statusDiv.innerHTML = "Schedule saved successfully.";
+
+        await Promise.all([loadPlanner(), loadAllPosts(true)]);
+        updatePostModalAfterSchedule(idea_id, date, time, note, platforms);
+
+      } catch (e) {
+        if (statusDiv) statusDiv.innerHTML = "Error saving schedule.";
+      }
+    }
+
+    async function loadPlanner() {
+      initCalendar();
+
+      try {
+        const resp = await fetch(PLANNER_URL, {
+          method: "GET"
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          alert("Error loading planner: " + (data.message || JSON.stringify(data)));
+          return;
+        }
+
+        const events = Array.isArray(data.events) ? data.events : [];
+
+        const calendarEvents = events.map(event => ({
+          title: event.title || "Untitled Post",
+          start: event.datetime || `${event.date}T${event.time}:00`,
+          allDay: false,
+          backgroundColor: event.backgroundColor || "",
+          borderColor: event.borderColor || "",
+          textColor: event.textColor || "",
+          extendedProps: {
+            raw_title: event.title || "Untitled Post",
+            idea_id: event.idea_id || "",
+            date: event.date || "",
+            time: event.time || "",
+            timeLabel: event.timeLabel || formatTime(event.time || ""),
+            datetime: event.datetime || "",
+            platforms: event.platforms || [],
+            status: event.status || "Draft",
+            note: event.note || ""
+          }
+        }));
+
+        calendar.removeAllEvents();
+        calendar.addEventSource(calendarEvents);
+
+      } catch (e) {
+        alert("Error loading planner.");
+      }
+    }
+
+    async function loadAllPosts(skipRender = false) {
+      const div = document.getElementById("allPostsResults");
+
+      if (!skipRender) {
+        div.innerHTML = `<div class="loading-box">Loading all posts...</div>`;
+      }
+
+      try {
+        const resp = await fetch(ALL_POSTS_URL, {
+          method: "GET"
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+          div.innerHTML = "Error: " + escapeHtml(data.message || JSON.stringify(data));
+          return;
+        }
+
+        allPostsData = Array.isArray(data.posts) ? data.posts : [];
+
+        if (!skipRender) {
+          renderAllPostsCards();
+        }
+
+      } catch (e) {
+        div.innerHTML = "Error loading all posts.";
+      }
+    }
+
+    function renderAllPostsCards() {
+      const div = document.getElementById("allPostsResults");
+      const search = (document.getElementById("allPostsSearch")?.value || "").trim().toLowerCase();
+      const filter = document.getElementById("allPostsFilter")?.value || "all";
+
+      let items = [...allPostsData];
+
+      if (search) {
+        items = items.filter(item =>
+          String(item.idea_title || "").toLowerCase().includes(search) ||
+          String(item.idea_summary || "").toLowerCase().includes(search)
+        );
+      }
+
+      if (filter !== "all") {
+        items = items.filter(item => {
+          const scheduleState = item.is_scheduled ? "scheduled" : "not_scheduled";
+          const status = String(item.status || "draft").trim().toLowerCase();
+
+          if (filter === "scheduled") return scheduleState === "scheduled";
+          if (filter === "not_scheduled") return scheduleState === "not_scheduled";
+          return status === filter;
+        });
+      }
+
+      if (!items.length) {
+        div.innerHTML = `<div class="loading-box">No posts found.</div>`;
+        return;
+      }
+
+      div.innerHTML = `
+        <div class="cards-grid">
+          ${items.map(item => renderPostCard(item)).join("")}
+        </div>
+      `;
+    }
+
+    function renderPostCard(item) {
+      const cardStatus = item.is_scheduled ? "Scheduled" : "Not Scheduled";
+      const cardStatusClass = item.is_scheduled ? "status-scheduled" : "status-not-scheduled";
+      const scheduleMini = item.is_scheduled ? `
+        <div class="mini-schedule">
+          <div><b>Date:</b> ${escapeHtml(item.scheduled_date || "")}</div>
+          <div><b>Time:</b> ${escapeHtml(item.scheduled_time_label || formatTime(item.scheduled_time || ""))}</div>
+        </div>
+      ` : "";
+
+      return `
+        <div class="post-card" onclick="openPostDetails('${escapeJsString(item.idea_id)}')">
+          <div class="post-card-title">${escapeHtml(item.idea_title || "Untitled")}</div>
+          <div class="post-card-summary">${escapeHtml(item.idea_summary || "")}</div>
+
+          <div class="card-meta-row">
+            <span class="status-pill ${cardStatusClass}">${escapeHtml(cardStatus)}</span>
+            <span class="small">${item.has_content ? "Content Ready" : "Content Not Generated"}</span>
+          </div>
+
+          ${scheduleMini}
+        </div>
+      `;
+    }
+
+    async function openPostDetails(idea_id) {
+      const post = allPostsData.find(x => x.idea_id === idea_id);
+
+      if (!post) return;
+
+      document.getElementById("postModalBody").innerHTML = `
+        <h3>${escapeHtml(post.idea_title || "Untitled")}</h3>
+        <div class="small">${escapeHtml(post.idea_summary || "")}</div>
+        <div class="sources-row"><b>Sources:</b> ${escapeHtml(formatSources(post.sources || []))}</div>
+
+        <div class="section-box" id="post-modal-content-box">
+          <div class="loading-box">Loading content...</div>
+        </div>
+
+        <div class="section-box" id="post-modal-schedule-box">
+          <div class="loading-box">Loading schedule...</div>
+        </div>
+      `;
+
+      document.getElementById("postModal").style.display = "block";
+
+      let fullPost = post;
+
+      if (!post.has_content) {
+        document.getElementById("post-modal-content-box").innerHTML = `
+          <div class="loading-box">Content not found. Generating content now...</div>
+        `;
+
+        const generated = await generateContentForIdea(idea_id);
+
+        if (generated && generated.content) {
+          fullPost = mergeGeneratedContentIntoPost(post, generated);
+          updateLocalAllPosts(fullPost);
+        } else {
+          document.getElementById("post-modal-content-box").innerHTML = `
+            <div class="loading-box">Unable to generate content right now.</div>
+          `;
+        }
+      }
+
+      renderPostDetailsContent(fullPost);
+      renderPostDetailsSchedule(fullPost);
+      renderAllPostsCards();
+    }
+
+    async function generateContentForIdea(idea_id) {
+      try {
+        const resp = await fetch(POSTS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idea_id })
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) return null;
+        return data;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function mergeGeneratedContentIntoPost(post, generated) {
+      return {
+        ...post,
+        has_content: true,
+        linkedin_text: generated.content.linkedin?.text || "",
+        linkedin_hashtags: generated.content.linkedin?.hashtags || [],
+        x_text: generated.content.x?.text || "",
+        facebook_text: generated.content.facebook?.text || ""
+      };
+    }
+
+    function updateLocalAllPosts(updatedPost) {
+      allPostsData = allPostsData.map(item =>
+        item.idea_id === updatedPost.idea_id ? updatedPost : item
+      );
+    }
+
+    function renderPostDetailsContent(post) {
+      const box = document.getElementById("post-modal-content-box");
+      if (!box) return;
+
+      box.innerHTML = `
+        <h4>Generated Content</h4>
+
+        <div class="content-block">
+          <h4>LinkedIn</h4>
+          <div>${escapeHtml(post.linkedin_text || "")}</div>
+          ${(post.linkedin_hashtags && post.linkedin_hashtags.length) ? `
+            <div class="small" style="margin-top:8px;">${post.linkedin_hashtags.map(escapeHtml).join(" ")}</div>
+          ` : ""}
+        </div>
+
+        <div class="content-block">
+          <h4>X / Twitter</h4>
+          <div>${escapeHtml(post.x_text || "")}</div>
+        </div>
+
+        <div class="content-block">
+          <h4>Facebook</h4>
+          <div>${escapeHtml(post.facebook_text || "")}</div>
+        </div>
+      `;
+    }
+
+    function renderPostDetailsSchedule(post) {
+      const box = document.getElementById("post-modal-schedule-box");
+      if (!box) return;
+
+      const safeId = escapeId(post.idea_id);
+
+      if (post.is_scheduled) {
+        box.innerHTML = `
+          <h4>Schedule</h4>
+
+          <div class="mini-schedule" style="margin-top:12px;">
+            <div><b>Date:</b> ${escapeHtml(post.scheduled_date || "")}</div>
+            <div><b>Time:</b> ${escapeHtml(post.scheduled_time_label || formatTime(post.scheduled_time || ""))}</div>
+            <div><b>Status:</b> ${renderStatusPill(post.status || "Scheduled")}</div>
+            <div><b>Note:</b> ${escapeHtml(post.planner_note || "-")}</div>
+          </div>
+
+          <div class="small" style="margin-top:10px;">You can reschedule below if needed.</div>
+
+          ${renderModalScheduleForm(post, safeId)}
+        `;
+      } else {
+        box.innerHTML = `
+          <h4>Schedule</h4>
+          <div class="small">This post is not scheduled yet.</div>
+          ${renderModalScheduleForm(post, safeId)}
+        `;
+      }
+    }
+
+    function renderModalScheduleForm(post, safeId) {
+      return `
+        <div class="schedule-box">
+          <div class="schedule-grid">
+            <div>
+              <label>Date</label>
+              <input type="date" id="modal-date-${safeId}" value="${escapeHtml(post.scheduled_date || "")}" />
+            </div>
+
+            <div>
+              <label>Time</label>
+              <select id="modal-time-${safeId}">
+                ${TIME_SLOTS.map(t => `
+                  <option value="${t.value}" ${String(post.scheduled_time || "") === t.value ? "selected" : ""}>${t.label}</option>
+                `).join("")}
+              </select>
+            </div>
+          </div>
+
+          <label>Platforms</label>
+          <div class="checkbox-row">
+            <label><input type="checkbox" id="modal-linkedin-${safeId}" ${isPlatformChecked(post.platforms, "linkedin") ? "checked" : ""} /> LinkedIn</label>
+            <label><input type="checkbox" id="modal-x-${safeId}" ${isPlatformChecked(post.platforms, "x") ? "checked" : ""} /> X</label>
+            <label><input type="checkbox" id="modal-facebook-${safeId}" ${isPlatformChecked(post.platforms, "facebook") ? "checked" : ""} /> Facebook</label>
+          </div>
+
+          <label>Planner Note</label>
+          <input id="modal-note-${safeId}" placeholder="Optional note" value="${escapeHtmlAttr(post.planner_note || "")}" />
+
+          <button onclick="schedulePost('${escapeJsString(post.idea_id)}', {
+            dateInputId: 'modal-date-${safeId}',
+            timeInputId: 'modal-time-${safeId}',
+            noteInputId: 'modal-note-${safeId}',
+            statusDivId: 'modal-status-${safeId}',
+            linkedinCheckboxId: 'modal-linkedin-${safeId}',
+            xCheckboxId: 'modal-x-${safeId}',
+            facebookCheckboxId: 'modal-facebook-${safeId}'
+          })">Save Schedule</button>
+
+          <div id="modal-status-${safeId}" class="small" style="margin-top:8px;"></div>
+        </div>
+      `;
+    }
+
+    function updatePostModalAfterSchedule(idea_id, date, time, note, platforms) {
+      const idx = allPostsData.findIndex(x => x.idea_id === idea_id);
+      if (idx === -1) return;
+
+      const updated = {
+        ...allPostsData[idx],
+        is_scheduled: true,
+        scheduled_date: date,
+        scheduled_time: time,
+        scheduled_time_label: formatTime(time),
+        scheduled_datetime: `${date}T${time}:00`,
+        status: "Scheduled",
+        planner_note: note || "",
+        platforms: platforms || allPostsData[idx].platforms || []
+      };
+
+      allPostsData[idx] = updated;
+      renderPostDetailsSchedule(updated);
+      renderAllPostsCards();
+    }
+
+    function renderStatusPill(status) {
+      const s = String(status || "").trim().toLowerCase();
+
+      if (s === "scheduled") {
+        return `<span class="status-pill status-scheduled">Scheduled</span>`;
+      }
+      if (s === "posted") {
+        return `<span class="status-pill status-posted">Posted</span>`;
+      }
+      if (s === "cancelled") {
+        return `<span class="status-pill status-cancelled">Cancelled</span>`;
+      }
+      if (s === "draft") {
+        return `<span class="status-pill status-draft">Draft</span>`;
+      }
+      return `<span class="status-pill status-not-scheduled">${escapeHtml(status || "Not Scheduled")}</span>`;
+    }
+
+    function isPlatformChecked(platforms, value) {
+      const arr = Array.isArray(platforms) ? platforms : [];
+      if (!arr.length) return true;
+      return arr.map(x => String(x).toLowerCase()).includes(String(value).toLowerCase());
+    }
+
+    function formatSources(sources) {
+      if (Array.isArray(sources) && sources.length) return sources.join(", ");
+      return "-";
+    }
+
+    function closeEventModal() {
+      document.getElementById("eventModal").style.display = "none";
+    }
+
+    function closePostModal() {
+      document.getElementById("postModal").style.display = "none";
+    }
+
+    window.addEventListener("click", function(event) {
+      const eventModal = document.getElementById("eventModal");
+      const postModal = document.getElementById("postModal");
+
+      if (event.target === eventModal) closeEventModal();
+      if (event.target === postModal) closePostModal();
+    });
+
+    window.addEventListener("keydown", function(event) {
+      if (event.key === "Escape") {
+        closeEventModal();
+        closePostModal();
+      }
+    });
+
+    function formatTime(timeStr) {
+      if (!timeStr) return "";
+      const parts = timeStr.split(":");
+      const h = Number(parts[0] || 0);
+      const m = Number(parts[1] || 0);
+
+      const d = new Date();
+      d.setHours(h, m, 0, 0);
+
+      return d.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeHtmlAttr(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function escapeId(str) {
+      return String(str).replace(/[^a-zA-Z0-9_-]/g, "_");
+    }
+
+    function escapeJsString(str) {
+      return String(str)
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '\\"');
+    }
+  </script>
 </body>
 </html>
-
-
